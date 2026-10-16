@@ -1,0 +1,22 @@
+# Wally
+/Packages/*
+!/Packages/.gitkeep
+/ServerPackages/
+/DevPackages/
+wally.lock
+
+# Rojo / Studio build outputs
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+*.rbxl.lock
+*.rbxlx.lock
+sourcemap.json
+
+# Editors / OS
+.vscode/*
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db

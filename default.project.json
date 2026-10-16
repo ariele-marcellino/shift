@@ -1,0 +1,62 @@
+{
+  "name": "Shift",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": {
+        "$path": "src/shared"
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "$properties": {
+        "CameraMode": "LockFirstPerson",
+        "CharacterWalkSpeed": 16,
+        "CharacterJumpPower": 40,
+        "CharacterUseJumpPower": true,
+        "EnableMouseLockOption": false
+      },
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Technology": "Future",
+        "Ambient": [
+          0.02,
+          0.02,
+          0.02
+        ],
+        "OutdoorAmbient": [
+          0.03,
+          0.03,
+          0.03
+        ],
+        "Brightness": 0,
+        "GlobalShadows": true,
+        "ClockTime": 0
+      }
+    },
+    "Teams": {
+      "$className": "Teams"
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "StreamingEnabled": false
+      }
+    }
+  }
+}
