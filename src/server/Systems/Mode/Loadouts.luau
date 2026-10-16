@@ -47,6 +47,13 @@ function Loadouts.Get(c: Combatant): string
 	return choice
 end
 
+-- Deploy menu: remember a player's primary before they have joined a team (applies on deploy).
+function Loadouts.Preset(player: Player, primary: any)
+	if isValid(primary) then
+		choices["P" .. tostring(player.UserId)] = primary
+	end
+end
+
 function Loadouts.Forget(c: Combatant)
 	if c.IsBot then
 		choices[c.Id] = nil

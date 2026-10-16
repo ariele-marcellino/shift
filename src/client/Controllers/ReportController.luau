@@ -651,7 +651,7 @@ function ReportController:Start()
 		end
 	end)
 	MatchStore.PhaseChanged:Connect(function(phase: string)
-		if phase == "Warmup" or phase == "Live" then
+		if phase == "Waiting" or phase == "Warmup" or phase == "Live" then
 			if gui.Enabled then
 				hide()
 			end

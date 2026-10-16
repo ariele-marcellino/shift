@@ -180,8 +180,12 @@ function MatchBar.mount(gui: ScreenGui): TextButton
 			side.CoreDot.BackgroundTransparency = if alert then 0 else 0.5
 		end
 		local phase = MatchStore.Phase
-		timer.Text = UIKit.formatTime(MatchStore.timeLeft())
-		phaseLabel.Text = if phase == "Warmup" then "WARMUP" elseif phase == "Ended" then "MATCH OVER" else ""
+		timer.Text = if phase == "Waiting" then "--:--" else UIKit.formatTime(MatchStore.timeLeft())
+		phaseLabel.Text = if phase == "Waiting"
+			then "WAITING FOR PLAYERS"
+			elseif phase == "Warmup" then "WARMUP"
+			elseif phase == "Ended" then "MATCH OVER"
+			else ""
 		timer.TextColor3 = if phase == "Live" and MatchStore.timeLeft() <= 60
 			then Theme.Colors.Bad
 			else Theme.Colors.White

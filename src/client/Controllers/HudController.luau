@@ -24,7 +24,8 @@ local help: any
 local loadout: any
 -- The loadout menu opens by itself exactly once per session (first spawn / first warmup); after
 -- that only [B] or the mobile LOADOUT button open it. Never on respawn.
-local loadoutAutoShown = false
+-- (Off since the deploy menu, LobbyController, picks the weapon before spawning: never auto-open.)
+local loadoutAutoShown = true
 local hiddenByReport = false
 
 local function disableCoreGui()

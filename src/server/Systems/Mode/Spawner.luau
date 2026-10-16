@@ -246,8 +246,14 @@ function Spawner.RespawnAll()
 	end
 end
 
--- Hook a player's CharacterAdded so every LoadCharacter goes through SetupCharacter.
+-- Hook a player's CharacterAdded so every LoadCharacter goes through SetupCharacter. Once per
+-- player (a team switch re-adds them to the roster).
+local bound: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 function Spawner.BindPlayer(player: Player)
+	if bound[player] then
+		return
+	end
+	bound[player] = true
 	player.CharacterAdded:Connect(function(character)
 		local c = TeamService:GetByPlayer(player)
 		if c then

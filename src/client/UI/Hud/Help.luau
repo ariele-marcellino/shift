@@ -23,6 +23,7 @@ local PC = {
 	{ "Crouch  ·  jump", "Ctrl  ·  Space" },
 	{ "Map  ·  ping", "M  ·  Y / Z / middle mouse" },
 	{ "Loadout", "B" },
+	{ "Menu  ·  team · squad · find match", "P" },
 	{ "Scoreboard", "Tab (hold)" },
 	{ "Settings  ·  this help", "O  ·  H" },
 }
@@ -37,6 +38,7 @@ local TOUCH = {
 	{ "Drop the flag (a teammate can carry it)", "DROP (while carrying)" },
 	{ "Crouch  ·  jump", "CROUCH  ·  JUMP" },
 	{ "Loadout", "LOADOUT (top right)" },
+	{ "Menu  ·  team · squad · find match", "MENU (top left)" },
 	{ "Scoreboard", "Tap the score bar" },
 }
 

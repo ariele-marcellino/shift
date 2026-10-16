@@ -1,5 +1,6 @@
 --!strict
--- Match loop (Warmup -> Live -> Ended + FacilityReport -> WorldService:ResetMatch()), scoring,
+-- Match loop (Waiting -> Warmup -> Live -> Ended + FacilityReport -> WorldService:ResetMatch()),
+-- scoring,
 -- Core events and announcements, capture -> ShiftAnnounce -> WorldService:ApplyNextShift(),
 -- respawns, stats, and MatchState broadcasts (4x/s while a Core is away from home, else 1x/s).
 
@@ -22,7 +23,9 @@ local CoreSystem = require(ModeFolder.CoreSystem)
 local TeamService = require(script.Parent.TeamService)
 
 type Combatant = Types.Combatant
-type Phase = "Warmup" | "Live" | "Ended"
+-- Waiting: no real player has pressed PLAY yet (or all of them left): no timer, no score, bots
+-- idle in their spawns. The first player to deploy starts a fresh match (owner, 2026-10-16).
+type Phase = "Waiting" | "Warmup" | "Live" | "Ended"
 
 local MatchService = {}
 
@@ -126,7 +129,7 @@ end
 local function buildState(): { [string]: any }
 	return {
 		Phase = phase,
-		TimeLeft = math.max(0, math.ceil(phaseEndsAt - os.clock())),
+		TimeLeft = if phase == "Waiting" then 0 else math.max(0, math.ceil(phaseEndsAt - os.clock())),
 		Score = { Blue = score.Blue, Red = score.Red },
 		CaptureLimit = Tuning.Match.CaptureLimit,
 		Cores = { Blue = CoreSystem.InfoFor("Blue"), Red = CoreSystem.InfoFor("Red") },
@@ -323,8 +326,24 @@ local function step()
 	end
 end
 
+-- Any real player on the roster (deployed from the menu)?
+local function hasPlayers(): boolean
+	for _, c in TeamService:GetAll() do
+		if not c.IsBot then
+			return true
+		end
+	end
+	return false
+end
+
+local abandoned = false -- every real player left during Warmup / Live
+
 local function runPhase()
 	while os.clock() < phaseEndsAt and not endRequested do
+		if (phase == "Warmup" or phase == "Live") and not hasPlayers() then
+			abandoned = true
+			break
+		end
 		local ok, err = pcall(step)
 		if not ok then
 			warn("[Mode] Match step failed: " .. tostring(err))
@@ -351,22 +370,57 @@ local function resetForNewMatch()
 	end
 end
 
+-- Reserved server started by the matchmaker (not a public or VIP server).
+local IS_MATCH_SERVER = game.PrivateServerId ~= "" and game.PrivateServerOwnerId == 0
+
+-- Hold the server in Waiting until a real player deploys.
+local function waitForPlayers()
+	if hasPlayers() then
+		return
+	end
+	resetForNewMatch()
+	setPhase("Waiting", math.huge)
+	Spawner.RespawnAll()
+	while not hasPlayers() do
+		local ok, err = pcall(step)
+		if not ok then
+			warn("[Mode] Match step failed: " .. tostring(err))
+		end
+		task.wait(TICK)
+	end
+end
+
 local function matchLoop()
+	local first = true
 	while true do
+		waitForPlayers()
+		abandoned = false
 		resetForNewMatch()
-		setPhase("Warmup", Tuning.Match.WarmupSeconds)
+		-- the first warmup on a match server waits for every matched player to arrive
+		local warmup = if first and IS_MATCH_SERVER
+			then Tuning.Matchmaking.MatchWarmupSeconds
+			else Tuning.Match.WarmupSeconds
+		first = false
+		setPhase("Warmup", warmup)
 		Spawner.RespawnAll()
 		announceAll(
 			`{Tuning.Match.TeamSize}v{Tuning.Match.TeamSize} · first to {Tuning.Match.CaptureLimit} captures`,
 			"Info"
 		)
 		runPhase()
+		if abandoned then
+			continue -- everyone left: back to Waiting
+		end
 
 		resetForNewMatch()
 		setPhase("Live", Tuning.Match.MatchSeconds)
 		Spawner.RespawnAll()
 		announceAll("Match live - steal their Flag", "Info")
 		runPhase()
+		if abandoned then
+			Deps.ResetMatch() -- undo shifts / broken lamps before the next player gets a fresh map
+			continue
+		end
 
 		setPhase("Ended", Tuning.Match.EndSeconds)
 		finishMatch()
@@ -447,17 +501,12 @@ function MatchService:Start()
 		return TeamService:GetByPlayer(player)
 	end)
 
-	Players.PlayerAdded:Connect(function(player)
-		TeamService:AddPlayer(player)
-	end)
+	-- Players join a team when they deploy from the menu (LobbyService), not on connect.
 	Players.PlayerRemoving:Connect(function(player)
 		TeamService:RemovePlayer(player)
 	end)
 
 	TeamService:Rebalance() -- bots for every empty slot
-	for _, player in Players:GetPlayers() do
-		task.spawn(TeamService.AddPlayer, TeamService, player)
-	end
 
 	task.spawn(matchLoop)
 end

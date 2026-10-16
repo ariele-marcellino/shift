@@ -1,8 +1,10 @@
 --!strict
 -- Teams (Blue/Red), the combatant roster (players + bots) and balancing.
 -- Every team always has Tuning.Match.TeamSize slots; real players take slots and bots fill the rest.
--- A joining player goes to a team with a friend / the person they followed when that team has room,
--- otherwise to the team with fewer real players; one bot on that team is removed.
+-- Players join a team when they DEPLOY from the menu (LobbyService), not when they connect: until
+-- then a bot keeps their slot. A deploying player goes to the team they picked (or were matched
+-- into), else to a team with a friend / the person they followed when that team has room, else to
+-- the team with fewer real players; one bot on that team is removed.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -260,19 +262,26 @@ local function smallerTeam(): string
 	return if rng:NextNumber() < 0.5 then "Blue" else "Red"
 end
 
--- Adds a joining player to a team (yields briefly for the friends check).
-function TeamService:AddPlayer(player: Player): Combatant?
+function TeamService:RealCount(team: string): number
+	return realCount(team)
+end
+
+-- Adds a deploying player to a team (yields briefly for the friends check). `wanted`: the team they
+-- picked or were matched into; `fixed` = true (match servers) keeps it even if it's full.
+function TeamService:AddPlayer(player: Player, wanted: string?, fixed: boolean?): Combatant?
 	if byPlayer[player] or pendingPlayers[player] then
 		return byPlayer[player]
 	end
 	pendingPlayers[player] = true
-	local team = preferredTeam(player) or smallerTeam()
+	local team = if wanted == "Blue" or wanted == "Red"
+		then wanted
+		else (preferredTeam(player) or smallerTeam())
 	pendingPlayers[player] = nil
 	if player.Parent ~= Players then
 		return nil
 	end
-	-- Re-check after the yield: if friends filled the team meanwhile, fall back to balance.
-	if realCount(team) >= Tuning.Match.TeamSize then
+	-- Re-check after the yield: if the team filled up meanwhile, fall back to balance.
+	if not fixed and realCount(team) >= Tuning.Match.TeamSize then
 		team = smallerTeam()
 	end
 
@@ -294,6 +303,22 @@ function TeamService:AddPlayer(player: Player): Combatant?
 	addMember(c)
 	TeamService:Rebalance()
 	return c
+end
+
+-- Move a deployed player to the other team (drops a carried flag; respawns them there). False if
+-- the other team has no free slot for a real player.
+function TeamService:SwitchTeam(player: Player): boolean
+	local c = byPlayer[player]
+	if not c then
+		return false
+	end
+	local target = TeamService:Enemy(c.Team)
+	if realCount(target) >= Tuning.Match.TeamSize then
+		return false
+	end
+	removeMember(c)
+	local added = TeamService:AddPlayer(player, target, true)
+	return added ~= nil
 end
 
 function TeamService:RemovePlayer(player: Player)

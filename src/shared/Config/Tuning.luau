@@ -16,6 +16,24 @@ Tuning.Match = {
 	SpawnProtection = 2, -- seconds of no damage after spawning (cancelled by firing)
 }
 
+-- Deploy menu + matchmaking (LobbyService / Matchmaker). Public servers are "quick play": you join
+-- a running 3v3 (bots fill). FIND MATCH queues you (and your squad) across all servers; the
+-- matchmaker builds a match of real players (squads stay on one team) on a fresh reserved server.
+-- With too few players online: after PartialAfterSeconds a match may start with bots filling the
+-- gaps; after SearchSeconds the search gives up and you play here with bots.
+Tuning.Matchmaking = {
+	MaxSquad = 3, -- = TeamSize
+	SearchSeconds = 60,
+	PartialAfterSeconds = 25, -- then at least one real squad per side is enough
+	StudioSearchSeconds = 8, -- Studio can't queue or teleport: a short fake search, then bots
+	TicketSeconds = 30, -- queue entry lifetime (refreshed every few seconds while searching)
+	ResultSeconds = 90,
+	LeaderSeconds = 8, -- matchmaker lease (one server builds matches at a time)
+	PollSeconds = 2,
+	MatchWarmupSeconds = 25, -- first warmup on a match server: time for everyone to arrive
+	SwitchTeamCooldown = 10,
+}
+
 Tuning.Slide = {
 	-- Sprint + C/Ctrl: burst that eases from Speed to EndSpeed over Seconds; you stand back up after.
 	Speed = 44,

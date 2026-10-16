@@ -25,7 +25,8 @@
 --   :SetEnabled(bool), :ResetMatch(), :GetAmmo(model)
 --   :SetDrawn(model, drawn)                   v1 leftover, no-op (holster mechanic removed)
 -- Attributes set: HeldWeapon, Scoped, Aiming, Flashlight, Crouching.
--- No damage outside MatchService phase "Live"; ForceField / SpawnProtected block damage.
+-- No damage outside MatchService phase "Live" (Waiting / Warmup / Ended); ForceField /
+-- SpawnProtected block damage.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -126,7 +127,7 @@ local function damageAllowed(): boolean
 	end
 	if matchService and type(matchService.GetPhase) == "function" then
 		local ok, phase = pcall(matchService.GetPhase, matchService)
-		if ok and (phase == "Warmup" or phase == "Ended") then
+		if ok and (phase == "Waiting" or phase == "Warmup" or phase == "Ended") then
 			return false
 		end
 	end

@@ -577,8 +577,8 @@ function BotBrain.Step(st: State, now: number, phase: string)
 	local carrying = isCarrying(st)
 	local engaged = st.TargetVisible and st.Target ~= nil
 
-	if phase == "Warmup" then
-		-- Warmup: stay near spawn, look at threats, don't fight.
+	if phase == "Warmup" or phase == "Waiting" then
+		-- Warmup / waiting for players: stay near spawn, look at threats, don't fight.
 		if st.Nav.Goal then
 			st.Nav:Stop()
 		end

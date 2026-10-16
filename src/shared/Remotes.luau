@@ -21,6 +21,7 @@ local EVENTS = {
 	"PingShown", -- (pinger name, team, position) to the pinger's team
 	"ElevatorRide", -- (seconds) riding the spawn elevator: fade out / in
 	"Scare", -- (kind) a quiet, one-player creepy moment (HorrorController)
+	"LobbyState", -- (state) deploy menu: server mode, teams, squad, search status (LobbyService)
 	-- Client -> Server
 	"ClientReady",
 	"Fire",
@@ -36,6 +37,7 @@ local EVENTS = {
 	"Slide",
 	"Ping", -- (position) map / world ping for your team
 	"DropFlag", -- drop the flag you carry where you stand (a teammate can pick it up)
+	"Lobby", -- ({ Action = "Deploy" | "SwitchTeam" | "CreateSquad" | "JoinSquad" | ... }) deploy menu
 	"ScareSeen", -- (scareId) I looked straight at a shared apparition (HorrorService)
 	"HorrorTest", -- Studio only: run the next scare kind for me
 }
